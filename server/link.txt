@@ -1,0 +1,2 @@
+const pythonExecutable = 'C:\\Xampp\\htdocs\\ai-photo-converter\\server\\python_scripts\\venv\\Scripts\\python.exe';
+// Pastikan menggunakan double backslash '\\' di Windows atau single slash '/' di Linux/macOS

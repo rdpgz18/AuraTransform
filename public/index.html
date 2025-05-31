@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AuraTransform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Gaya kustom tambahan jika diperlukan, meskipun Tailwind sudah sangat kuat */
+      body {
+        font-family: "Inter", sans-serif; /* Anda bisa mengganti font */
+      }
+      .drop-area {
+        border: 2px dashed #a0aec0; /* Tailwind gray-400 */
+        transition: all 0.3s ease-in-out;
+      }
+      .drop-area.highlight {
+        border-color: #4299e1; /* Tailwind blue-500 */
+        background-color: #ebf8ff; /* Tailwind blue-50 */
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+    <header class="bg-white shadow-sm py-4">
+      <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold text-center text-blue-600">
+          AuraTransform
+        </h1>
+        <p class="text-center text-gray-600 mt-2">
+          Ubah fotomu dengan kekuatan AuraTransform!
+        </p>
+      </div>
+    </header>
+
+    <main
+      class="flex-grow container mx-auto px-4 py-8 flex flex-col items-center justify-center"
+    >
+      <div class="bg-white rounded-lg shadow-xl p-6 md:p-8 w-full max-w-2xl">
+        <div
+          id="drop-area"
+          class="drop-area p-8 rounded-lg text-center cursor-pointer mb-6 hover:border-blue-500"
+        >
+          <input type="file" id="fileElem" accept="image/*" class="hidden" />
+          <svg
+            class="mx-auto h-16 w-16 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+            />
+          </svg>
+          <p class="mt-4 text-lg text-gray-600">
+            Seret & jatuhkan gambar di sini
+          </p>
+          <p class="text-sm text-gray-500">(atau klik untuk memilih)</p>
+        </div>
+
+        <div class="text-center mb-6">
+          <p class="text-gray-500 mb-2">- ATAU -</p>
+          <button
+            id="browseFileBtn"
+            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300"
+          >
+            Pilih Gambar
+          </button>
+        </div>
+
+        <div id="preview-area" class="hidden mb-6">
+          <h3 class="text-xl font-semibold mb-3 text-gray-700">
+            Pratinjau Gambar:
+          </h3>
+          <div
+            class="flex justify-center items-center p-4 bg-gray-50 rounded-lg border border-gray-200"
+          >
+            <img
+              id="image-preview"
+              src="#"
+              alt="Pratinjau Gambar"
+              class="max-w-full h-auto rounded-lg shadow-md max-h-64 object-contain"
+            />
+          </div>
+          <div class="text-center mt-4">
+            <span id="file-name" class="text-sm text-gray-600"></span>
+          </div>
+        </div>
+
+        <div id="conversion-options" class="hidden mb-6">
+          <label
+            for="outputFormat"
+            class="block text-gray-700 text-sm font-bold mb-2"
+            >Pilih Format Output:</label
+          >
+          <select
+            id="outputFormat"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500"
+          >
+            <option value="jpg">JPG</option>
+            <option value="jpeg">JPEG</option>
+            <option value="webp">WEBP</option>
+            <option value="png">PNG</option>
+          </select>
+          <label
+            for="processingMode"
+            class="block text-gray-700 text-sm font-bold mb-2 mt-4"
+            >Pilih Mode Konversi (AI):</label
+          >
+          <select
+            id="processingMode"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500"
+          >
+            <option value="original">Original (Tanpa Perubahan)</option>
+            <option value="enhance">Peningkatan Warna/Kontras (HD)</option>
+            <option value="grayscale">Skala Abu-abu</option>
+            <option value="resize">Ubah Ukuran (300x300)</option>
+            <option value="cartoon">Kartun (Simulasi)</option>
+          </select>
+        </div>
+
+        <div class="text-center">
+          <button
+            id="convertBtn"
+            class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-300 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled
+          >
+            Konversi Gambar
+          </button>
+        </div>
+
+        <div id="result-area" class="hidden mb-6 mt-6">
+          <h3 class="text-xl font-semibold mb-3 text-gray-700 text-center">
+            Gambar Hasil Konversi:
+          </h3>
+          <div
+            class="flex justify-center items-center p-4 bg-blue-50 rounded-lg border border-blue-200"
+          >
+            <img
+              id="converted-image-preview"
+              src="#"
+              alt="Gambar Hasil Konversi"
+              class="max-w-full h-auto rounded-lg shadow-md max-h-64 object-contain"
+            />
+          </div>
+          <div class="text-center mt-4">
+            <a
+              id="downloadBtn"
+              href="#"
+              download
+              class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300 inline-flex items-center"
+            >
+              <svg
+                class="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                ></path>
+              </svg>
+              Download Gambar
+            </a>
+          </div>
+        </div>
+
+        <div
+          id="error-message"
+          class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+          role="alert"
+        >
+          <strong class="font-bold">Oops!</strong>
+          <span class="block sm:inline" id="error-text"></span>
+          <span
+            class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer"
+            onclick="this.parentElement.classList.add('hidden')"
+          >
+            <svg
+              class="fill-current h-6 w-6 text-red-500"
+              role="button"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <title>Close</title>
+              <path
+                d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.15a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.029a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.15 2.758 3.15a1.2 1.2 0 0 1 0 1.697z"
+              />
+            </svg>
+          </span>
+        </div>
+
+        <div
+          id="loading-indicator"
+          class="hidden text-center text-blue-600 font-semibold mt-4"
+        >
+          <svg
+            class="animate-spin h-8 w-8 text-blue-500 mx-auto"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <p class="mt-2">Memproses gambar...</p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="bg-white shadow-sm py-4 mt-8">
+      <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+        &copy; 2025 AuraTransform. All Right Reserved.
+      </div>
+    </footer>
+
+    <script>
+      const dropArea = document.getElementById("drop-area");
+      const fileElem = document.getElementById("fileElem");
+      const browseFileBtn = document.getElementById("browseFileBtn");
+      const imagePreview = document.getElementById("image-preview");
+      const previewArea = document.getElementById("preview-area");
+      const fileNameSpan = document.getElementById("file-name");
+      const convertBtn = document.getElementById("convertBtn");
+      const resultArea = document.getElementById("result-area");
+      const convertedImagePreview = document.getElementById(
+        "converted-image-preview"
+      );
+      const loadingIndicator = document.getElementById("loading-indicator");
+      const errorMessage = document.getElementById("error-message");
+      const errorText = document.getElementById("error-text");
+
+      // New Elements
+      const conversionOptions = document.getElementById("conversion-options");
+      const outputFormatSelect = document.getElementById("outputFormat");
+      const processingModeSelect = document.getElementById("processingMode");
+      const downloadBtn = document.getElementById("downloadBtn");
+
+      let selectedFile = null;
+      let convertedBlob = null; // To store the converted image Blob for download
+
+      // ... (preventDefaults, dragenter/dragover, dragleave/drop, handleDrop, browseFileBtn.click, fileElem.change remain the same) ...
+
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+      });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropArea.addEventListener(
+          eventName,
+          () => dropArea.classList.add("highlight"),
+          false
+        );
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropArea.addEventListener(
+          eventName,
+          () => dropArea.classList.remove("highlight"),
+          false
+        );
+      });
+
+      dropArea.addEventListener("drop", handleDrop, false);
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+      }
+
+      browseFileBtn.addEventListener("click", () => {
+        fileElem.click(); // Memicu klik input file saat tombol diklik
+      });
+
+      fileElem.addEventListener("change", (e) => {
+        handleFiles(e.target.files);
+      });
+
+      function handleFiles(files) {
+        if (files.length === 0) {
+          return;
+        }
+        const file = files[0];
+        if (!file.type.startsWith("image/")) {
+          showError("Hanya file gambar (JPG, PNG, GIF, dll.) yang diizinkan!");
+          return;
+        }
+
+        selectedFile = file;
+        hideError();
+        previewArea.classList.remove("hidden"); // Ensure preview area is visible
+        conversionOptions.classList.remove("hidden"); // Show conversion options
+        convertBtn.disabled = false; // Enable convert button
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          imagePreview.src = e.target.result;
+          fileNameSpan.textContent = file.name;
+
+          // Sembunyikan area hasil sebelumnya jika ada
+          resultArea.classList.add("hidden");
+          convertedImagePreview.src = "#";
+          convertedBlob = null; // Reset blob
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // --- Bagian Konversi (Modifikasi) ---
+      convertBtn.addEventListener("click", async () => {
+        if (!selectedFile) {
+          showError("Pilih gambar terlebih dahulu!");
+          return;
+        }
+
+        // Dapatkan pilihan format dan mode dari dropdown
+        const outputFormat = outputFormatSelect.value;
+        const processingMode = processingModeSelect.value; // 'grayscale' atau 'resize'
+
+        // Nonaktifkan tombol dan tampilkan loading
+        convertBtn.disabled = true;
+        loadingIndicator.classList.remove("hidden");
+        hideError();
+        resultArea.classList.add("hidden");
+        convertedBlob = null; // Reset blob
+
+        const formData = new FormData();
+        formData.append("image", selectedFile);
+        formData.append("outputFormat", outputFormat); // Kirim format output ke backend
+        formData.append("processingMode", processingMode); // Kirim mode pemrosesan ke backend
+
+        try {
+          const response = await fetch("http://localhost:3000/convert", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+              errorData.message || "Terjadi kesalahan saat mengkonversi gambar."
+            );
+          }
+
+          // Dapatkan Blob dan URL objek untuk preview
+          const blob = await response.blob();
+          convertedBlob = blob; // Simpan Blob untuk download
+          const imageUrl = URL.createObjectURL(blob);
+          convertedImagePreview.src = imageUrl;
+          resultArea.classList.remove("hidden");
+
+          // Siapkan tombol download
+          downloadBtn.href = imageUrl;
+          // Buat nama file download yang lebih informatif
+          const originalName = selectedFile.name
+            .split(".")
+            .slice(0, -1)
+            .join(".");
+          downloadBtn.download = `${originalName}-converted.${outputFormat}`;
+        } catch (error) {
+          console.error("Error:", error);
+          showError(`Gagal mengkonversi: ${error.message}`);
+          resultArea.classList.add("hidden");
+        } finally {
+          loadingIndicator.classList.add("hidden");
+          convertBtn.disabled = false;
+        }
+      });
+
+      function showError(message) {
+        errorText.textContent = message;
+        errorMessage.classList.remove("hidden");
+      }
+
+      function hideError() {
+        errorMessage.classList.add("hidden");
+        errorText.textContent = "";
+      }
+    </script>
+  </body>
+</html>
